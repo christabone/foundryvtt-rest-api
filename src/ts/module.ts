@@ -23,24 +23,24 @@ Hooks.once("init", () => {
   
   // Register module settings for WebSocket configuration
   (game as Game).settings.register(moduleId, "wsRelayUrl", {
-    name: "WebSocket Relay URL",
-    hint: "URL for the WebSocket relay server",
+    name: "Local Relay Server URL",
+    hint: "URL for the local FoundryVTT relay server (WebSocket connection)",
     scope: "world",
     config: true,
     type: String,
-    default: "wss://foundryvtt-rest-api-relay.fly.dev",
+    default: "ws://localhost:3001/ws",
     requiresReload: true
   } as any);
   
   (game as Game).settings.register(moduleId, "apiKey", {
     name: "API Key",
-    hint: "API Key for authentication with the relay server",
+    hint: "API Key for authentication with the local relay server (generated automatically)",
     scope: "world",
     config: true,
     type: String,
     default: (game as Game).world.id,
     requiresReload: true
-  } as any);;
+  } as any);
 
   (game as Game).settings.register(moduleId, "logLevel", {
     name: "Log Level",
@@ -60,7 +60,7 @@ Hooks.once("init", () => {
   // Add new settings for connection management
   (game as Game).settings.register(moduleId, "pingInterval", {
     name: "Ping Interval (seconds)",
-    hint: "How often (in seconds) the module sends a ping to the relay server to keep the connection alive.",
+    hint: "How often (in seconds) the module sends a ping to the local relay server to keep the connection alive.",
     scope: "world",
     config: true,
     type: Number,
@@ -219,7 +219,7 @@ Hooks.on("createChatMessage", (message: any) => {
       }
     }
     
-    // Send to relay server if connected
+    // Send to local relay server if connected
     const module = (game as Game).modules.get(moduleId) as FoundryRestApi;
     if (module.socketManager?.isConnected()) {
       module.socketManager.send({

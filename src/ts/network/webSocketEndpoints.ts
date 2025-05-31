@@ -12,11 +12,11 @@ export function initializeWebSocket() {
     const module = (game as Game).modules.get(moduleId) as FoundryRestApi;
     
     if (!wsRelayUrl) {
-      ModuleLogger.error(`WebSocket relay URL is empty. Please configure it in module settings.`);
+      ModuleLogger.error(`Local relay server URL is empty. Please configure it in module settings.`);
       return;
     }
     
-    ModuleLogger.info(`Initializing WebSocket with URL: ${wsRelayUrl}`);
+    ModuleLogger.info(`Initializing WebSocket connection to local relay server: ${wsRelayUrl}`);
     
     try {
         // Create and connect the WebSocket manager - only if it doesn't exist already
