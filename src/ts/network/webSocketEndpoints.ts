@@ -1166,7 +1166,8 @@ export function initializeWebSocket() {
 
         // Handle get hotbar request
         socketManager.onMessageType("get-hotbar", async (data) => {
-            ModuleLogger.info(`Received request for hotbar data`);
+            ModuleLogger.info(`Received request for hotbar data:`, data);
+            ModuleLogger.info(`data.page = ${data.page}, ui.hotbar.page = ${((ui as any).hotbar?.page)}`);
             
             try {
                 // Use the official FoundryVTT API: User.getHotbarMacros()
