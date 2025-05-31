@@ -47,6 +47,10 @@ export function initializeWebSocket() {
         socketManager.onMessageType("pong", () => {
             ModuleLogger.info(`Received pong`);
         });
+
+        socketManager.onMessageType("connected", () => {
+            ModuleLogger.info(`WebSocket connection confirmed by relay server`);
+        });
         
         // Handle search requests
         socketManager.onMessageType("perform-search", async (data) => {
