@@ -24,3 +24,22 @@ dist-ssr
 *.sw?
 pnpm-lock.yaml
 package-lock.json
+
+# Environment files (keep .example files)
+.env
+.env.local
+.env.*.local
+
+# API keys and sensitive data (should be in Docker volumes)
+server/data/api-keys.json
+server/data/api-keys.encrypted
+server/tests/temp/
+data/
+
+# Test reports and temporary files
+integration-test-report-*.txt
+test-reports/
+*.test.log
+
+# Docker runtime files
+.dockerignore.local

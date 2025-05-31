@@ -1,0 +1,56 @@
+# Security Configuration and Guidelines
+
+## Docker Security Measures Implemented
+
+### 1. Non-Root User
+- Container runs as user 'foundry' (UID 1001) instead of root
+- Follows principle of least privilege
+
+### 2. Minimal Base Image
+- Uses Alpine Linux for smaller attack surface
+- Regular security updates applied during build
+
+### 3. File Permissions
+- Restricted permissions on data and logs directories (750)
+- Application directory has appropriate permissions (755)
+
+### 4. Multi-Stage Build
+- Build dependencies not included in production image
+- Smaller final image size reduces attack surface
+
+### 5. Health Checks
+- Built-in health monitoring to detect compromise
+- Automated restart on health check failures
+
+## Security Best Practices for Deployment
+
+### Environment Variables
+- Never commit real API keys to version control
+- Use Docker secrets for sensitive data in production
+- Rotate API keys regularly
+
+### Network Security
+- Run behind reverse proxy (nginx/Apache) in production
+- Use TLS/SSL encryption for external traffic
+- Limit exposed ports to minimum required
+
+### Monitoring
+- Enable logging for security events
+- Monitor container resource usage
+- Set up alerts for unusual activity
+
+### Updates
+- Regularly update base images
+- Monitor for security vulnerabilities
+- Automate security patching where possible
+
+## Production Hardening Checklist
+
+- [ ] Change default API keys
+- [ ] Enable TLS/SSL
+- [ ] Configure reverse proxy
+- [ ] Set up log monitoring
+- [ ] Enable security scanning
+- [ ] Configure backup strategy
+- [ ] Test disaster recovery
+- [ ] Document security procedures

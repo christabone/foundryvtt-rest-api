@@ -1,0 +1,79 @@
+# FoundryVTT Local Relay Server Test Dockerfile
+# Multi-stage build with dev dependencies for testing
+
+# Build stage
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY yarn.lock ./
+
+# Install all dependencies (including dev dependencies for testing)
+RUN npm ci && npm cache clean --force
+
+# Copy source code
+COPY . .
+
+# Build the server
+RUN npm run server:build
+
+# Test stage (includes dev dependencies)
+FROM node:18-alpine AS test
+
+# Install curl for health checks and security updates
+RUN apk add --no-cache curl \
+    && apk upgrade --no-cache
+
+# Add security: Create non-root user with minimal privileges
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S foundry -u 1001 -G nodejs -h /app -s /bin/sh
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install ALL dependencies (including dev)
+COPY package*.json ./
+COPY yarn.lock ./
+RUN npm ci && npm cache clean --force
+
+# Copy built server and source from builder stage
+COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/server/src ./server/src
+COPY --from=builder /app/server/tests ./server/tests
+COPY --from=builder /app/jest.config.js ./jest.config.js
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
+# Create data directory for persistent storage with proper permissions
+RUN mkdir -p /app/server/data && \
+    chown -R foundry:nodejs /app/server/data && \
+    chmod 750 /app/server/data
+
+# Create logs directory with proper permissions
+RUN mkdir -p /app/logs && \
+    chown -R foundry:nodejs /app/logs && \
+    chmod 750 /app/logs
+
+# Set proper ownership for the entire app directory
+RUN chown -R foundry:nodejs /app && \
+    chmod 755 /app
+
+# Switch to non-root user (security best practice)
+USER foundry
+
+# Expose port
+EXPOSE 3001
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3001/health || exit 1
+
+# Environment variables with defaults
+ENV NODE_ENV=development
+ENV PORT=3001
+ENV LOG_LEVEL=info
+
+# Default command runs tests
+CMD ["npm", "run", "test"]

@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  foundry-relay:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: foundry-relay-server
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - LOG_LEVEL=info
+    env_file:
+      - .env
+    volumes:
+      - foundry-data:/app/server/data
+      - foundry-logs:/app/logs
+    networks:
+      - foundry-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.foundryvtt.description=FoundryVTT Local Relay Server"
+      - "com.foundryvtt.version=1.8.1"
+
+volumes:
+  foundry-data:
+    driver: local
+  foundry-logs:
+    driver: local
+
+networks:
+  foundry-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
