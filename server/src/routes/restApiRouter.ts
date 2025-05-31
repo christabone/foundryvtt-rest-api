@@ -298,6 +298,18 @@ export class RestApiRouter {
       }, res);
     });
 
+    // Get hotbar
+    this.router.get('/hotbar', (_req: Request, res: Response) => {
+      this.handleAsyncRoute(async () => {
+        const message = {
+          type: 'get-hotbar'
+        };
+
+        const result = await this.webSocketHandler.sendMessageToFoundry(message);
+        res.json(result);
+      }, res);
+    });
+
     // Connected clients status (no auth required)
     this.router.get('/status', (_req: Request, res: Response) => {
       const clients = this.webSocketHandler.getConnectedClients();

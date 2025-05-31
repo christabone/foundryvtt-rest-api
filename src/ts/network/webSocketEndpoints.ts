@@ -1163,6 +1163,80 @@ export function initializeWebSocket() {
             });
             }
         });
+
+        // Handle get hotbar request
+        socketManager.onMessageType("get-hotbar", async (data) => {
+            ModuleLogger.info(`Received request for hotbar data`);
+            
+            try {
+                // Simpler approach - get current hotbar page and user data
+                const currentPage = ((ui as any).hotbar?.page) || 1;
+                const hotbarData: any[] = [];
+                
+                ModuleLogger.info(`Current hotbar page: ${currentPage}`);
+                
+                // Get user data more safely
+                const userData = (game as Game).user?.data || {};
+                ModuleLogger.info(`User data keys: ${Object.keys(userData)}`);
+                
+                // Try multiple ways to access hotbar data
+                const hotbarFlags = (userData as any).flags?.hotbar || {};
+                const directHotbar = (userData as any).hotbar || {};
+                
+                ModuleLogger.info(`Hotbar flags keys: ${Object.keys(hotbarFlags)}`);
+                ModuleLogger.info(`Direct hotbar keys: ${Object.keys(directHotbar)}`);
+                
+                for (let i = 1; i <= 10; i++) {
+                    const slot = ((currentPage - 1) * 10) + i;
+                    const macroId = hotbarFlags[slot] || directHotbar[slot];
+                    
+                    ModuleLogger.info(`Slot ${i} (index ${slot}): macroId = ${macroId}`);
+                    
+                    if (macroId) {
+                        const macro = (game as Game).macros?.get(macroId);
+                        if (macro) {
+                            hotbarData.push({
+                                slot: i,
+                                uuid: macro.uuid,
+                                id: macro.id,
+                                name: macro.name,
+                                type: (macro as any).type || "unknown",
+                                img: (macro as any).img,
+                                command: (macro as any).command || "",
+                                canExecute: (macro as any).canExecute
+                            });
+                        } else {
+                            ModuleLogger.info(`Macro with ID ${macroId} not found`);
+                            hotbarData.push({
+                                slot: i,
+                                macroId: macroId,
+                                notFound: true
+                            });
+                        }
+                    } else {
+                        hotbarData.push({
+                            slot: i,
+                            empty: true
+                        });
+                    }
+                }
+                
+                socketManager.send({
+                    type: "hotbar-data",
+                    requestId: data.requestId,
+                    currentPage: currentPage,
+                    hotbar: hotbarData
+                });
+            } catch (error) {
+                ModuleLogger.error(`Error getting hotbar data:`, error);
+                socketManager.send({
+                    type: "hotbar-data",
+                    requestId: data.requestId,
+                    error: (error as Error).message,
+                    hotbar: []
+                });
+            }
+        });
     
         // Handle execute macro request
         socketManager.onMessageType("execute-macro", async (data) => {
