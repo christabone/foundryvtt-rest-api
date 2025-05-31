@@ -1170,7 +1170,9 @@ export function initializeWebSocket() {
             
             try {
                 // Use the official FoundryVTT API: User.getHotbarMacros()
-                const currentPage = ((ui as any).hotbar?.page) || 1;
+                // Use requested page or current page
+                const requestedPage = data.page || ((ui as any).hotbar?.page) || 1;
+                const currentPage = requestedPage;
                 const hotbarData: any[] = [];
                 
                 ModuleLogger.info(`Getting hotbar data for page ${currentPage}`);

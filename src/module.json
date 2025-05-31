@@ -2,7 +2,7 @@
   "id": "foundry-rest-api",
   "title": "Foundry REST API",
   "description": "Adds rest endpoint to get data from FoundryVTT",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "authors": [
       {
           "name": "christabone",

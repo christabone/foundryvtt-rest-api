@@ -299,10 +299,13 @@ export class RestApiRouter {
     });
 
     // Get hotbar
-    this.router.get('/hotbar', (_req: Request, res: Response) => {
+    this.router.get('/hotbar', (req: Request, res: Response) => {
       this.handleAsyncRoute(async () => {
+        const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+        
         const message = {
-          type: 'get-hotbar'
+          type: 'get-hotbar',
+          ...(page && { page })
         };
 
         const result = await this.webSocketHandler.sendMessageToFoundry(message);
