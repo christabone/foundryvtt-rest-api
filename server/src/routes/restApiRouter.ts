@@ -286,6 +286,18 @@ export class RestApiRouter {
       }, res);
     });
 
+    // Get macros
+    this.router.get('/macros', (_req: Request, res: Response) => {
+      this.handleAsyncRoute(async () => {
+        const message = {
+          type: 'get-macros'
+        };
+
+        const result = await this.webSocketHandler.sendMessageToFoundry(message);
+        res.json(result);
+      }, res);
+    });
+
     // Connected clients status (no auth required)
     this.router.get('/status', (_req: Request, res: Response) => {
       const clients = this.webSocketHandler.getConnectedClients();
