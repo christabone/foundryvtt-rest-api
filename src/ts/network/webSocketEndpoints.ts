@@ -1169,54 +1169,54 @@ export function initializeWebSocket() {
             ModuleLogger.info(`Received request for hotbar data`);
             
             try {
-                // Simpler approach - get current hotbar page and user data
+                // Use the official FoundryVTT API: User.getHotbarMacros()
                 const currentPage = ((ui as any).hotbar?.page) || 1;
                 const hotbarData: any[] = [];
                 
-                ModuleLogger.info(`Current hotbar page: ${currentPage}`);
+                ModuleLogger.info(`Getting hotbar data for page ${currentPage}`);
                 
-                // Get user data more safely
-                const userData = (game as Game).user?.data || {};
-                ModuleLogger.info(`User data keys: ${Object.keys(userData)}`);
-                
-                // Try multiple ways to access hotbar data
-                const hotbarFlags = (userData as any).flags?.hotbar || {};
-                const directHotbar = (userData as any).hotbar || {};
-                
-                ModuleLogger.info(`Hotbar flags keys: ${Object.keys(hotbarFlags)}`);
-                ModuleLogger.info(`Direct hotbar keys: ${Object.keys(directHotbar)}`);
-                
-                for (let i = 1; i <= 10; i++) {
-                    const slot = ((currentPage - 1) * 10) + i;
-                    const macroId = hotbarFlags[slot] || directHotbar[slot];
+                if ((game as Game)?.user && typeof ((game as Game).user as any).getHotbarMacros === 'function') {
+                    // Use the official API method
+                    const hotbarMacros = ((game as Game).user as any).getHotbarMacros(currentPage);
+                    ModuleLogger.info(`Found ${hotbarMacros.length} hotbar macros on page ${currentPage}`);
                     
-                    ModuleLogger.info(`Slot ${i} (index ${slot}): macroId = ${macroId}`);
+                    // Create a map of slot number to macro for easy lookup
+                    const macrosBySlot = new Map();
+                    hotbarMacros.forEach((entry: any) => {
+                        macrosBySlot.set(entry.slot, entry.macro);
+                    });
                     
-                    if (macroId) {
-                        const macro = (game as Game).macros?.get(macroId);
+                    // Build the full hotbar (10 slots per page)
+                    for (let slot = 1; slot <= 10; slot++) {
+                        const macro = macrosBySlot.get(slot);
+                        
                         if (macro) {
                             hotbarData.push({
-                                slot: i,
+                                slot: slot,
                                 uuid: macro.uuid,
                                 id: macro.id,
                                 name: macro.name,
-                                type: (macro as any).type || "unknown",
-                                img: (macro as any).img,
-                                command: (macro as any).command || "",
-                                canExecute: (macro as any).canExecute
+                                type: macro.type || "unknown",
+                                img: macro.img,
+                                command: macro.command || "",
+                                canExecute: macro.canExecute,
+                                author: macro.author?.name || "unknown"
                             });
                         } else {
-                            ModuleLogger.info(`Macro with ID ${macroId} not found`);
                             hotbarData.push({
-                                slot: i,
-                                macroId: macroId,
-                                notFound: true
+                                slot: slot,
+                                empty: true
                             });
                         }
-                    } else {
+                    }
+                } else {
+                    ModuleLogger.warn("getHotbarMacros method not available on game.user");
+                    // Fallback: return empty slots
+                    for (let slot = 1; slot <= 10; slot++) {
                         hotbarData.push({
-                            slot: i,
-                            empty: true
+                            slot: slot,
+                            empty: true,
+                            error: "getHotbarMacros_not_available"
                         });
                     }
                 }
