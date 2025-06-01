@@ -7,17 +7,22 @@ describe('WebSocket Integration Tests', () => {
   let server: FoundryRelayServer;
 
   beforeAll(async () => {
+    // Use a different port for WebSocket tests
+    process.env.PORT = '3004';
     server = await testHelper.createTestServer();
     await testHelper.wait(500); // Wait for server to be ready
   });
 
   afterAll(async () => {
+    if (server) {
+      await server.stop();
+    }
     await testHelper.stopTestServer();
   });
 
   describe('WebSocket Connection', () => {
     it('should accept valid WebSocket connections', async () => {
-      const ws = await testHelper.createTestWebSocketClient(3001, 'test-gm', 'test-world-123');
+      const ws = await testHelper.createTestWebSocketClient(3004, 'test-gm', 'test-world-123');
       
       expect(ws.readyState).toBe(WebSocket.OPEN);
       
@@ -26,20 +31,20 @@ describe('WebSocket Integration Tests', () => {
 
     it('should reject connections without client ID', async () => {
       await expect(
-        testHelper.createTestWebSocketClient(3001, '', 'test-token')
+        testHelper.createTestWebSocketClient(3004, '', 'test-token')
       ).rejects.toThrow();
     });
 
     it('should reject connections without token', async () => {
       await expect(
-        testHelper.createTestWebSocketClient(3001, 'test-client', '')
+        testHelper.createTestWebSocketClient(3004, 'test-client', '')
       ).rejects.toThrow();
     });
   });
 
   describe('WebSocket Message Handling', () => {
     it('should handle ping messages', async () => {
-      const ws = await testHelper.createTestWebSocketClient(3001, 'test-gm', 'test-world-123');
+      const ws = await testHelper.createTestWebSocketClient(3004, 'test-gm', 'test-world-123');
       
       const response = await testHelper.sendWebSocketMessage(ws, { type: 'ping' });
       
@@ -50,7 +55,7 @@ describe('WebSocket Integration Tests', () => {
 
     it('should send welcome message on connection', async () => {
       return new Promise<void>((resolve) => {
-        const ws = new WebSocket('ws://localhost:3001/ws?id=welcome-test&token=test-token');
+        const ws = new WebSocket('ws://localhost:3004/ws?id=welcome-test&token=test-token');
         
         ws.on('message', (data) => {
           const message = JSON.parse(data.toString());
@@ -66,7 +71,7 @@ describe('WebSocket Integration Tests', () => {
 
   describe('Request/Response Correlation', () => {
     it('should handle requests without FoundryVTT connected', async () => {
-      const ws = await testHelper.createTestWebSocketClient(3001, 'test-requester', 'test-token');
+      const ws = await testHelper.createTestWebSocketClient(3004, 'test-requester', 'test-token');
       
       // Try to send a message that would require FoundryVTT response
       ws.send(JSON.stringify({

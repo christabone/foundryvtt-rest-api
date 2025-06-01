@@ -40,5 +40,11 @@ integration-test-report-*.txt
 test-reports/
 *.test.log
 
+# Backup and temporary files
+*.backup
+*.bak
+*-new.ts
+server.log
+
 # Docker runtime files
 .dockerignore.local

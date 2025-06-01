@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import { WebSocketHandler } from '../../src/websocket/webSocketHandler';
-import { ApiKeyManager } from '../../src/auth/apiKeyManager';
+import { EnhancedApiKeyManager } from '../../src/auth/enhancedApiKeyManager';
 
 describe('WebSocketHandler', () => {
   let webSocketHandler: WebSocketHandler;
-  let apiKeyManager: ApiKeyManager;
+  let apiKeyManager: EnhancedApiKeyManager;
 
   beforeEach(() => {
-    apiKeyManager = new ApiKeyManager();
+    apiKeyManager = new EnhancedApiKeyManager();
     webSocketHandler = new WebSocketHandler(apiKeyManager);
   });
 

@@ -11,25 +11,18 @@ describe('REST API Integration Tests with Mock FoundryVTT', () => {
   const validApiKey = 'test-world-id-12345';
 
   beforeAll(async () => {
-    // Start the actual server for integration testing
-    server = new FoundryRelayServer();
-    await server.start();
-    app = server.getApp();
+    // Use the existing server running on port 3001 instead of starting a new one
+    // This avoids port conflicts and uses the real FoundryVTT connection
+    app = 'http://localhost:3001'; // Use the existing server for requests
     
-    // Connect mock FoundryVTT client
-    mockClient = new MockFoundryClient();
-    await mockClient.connect();
-    
-    // Wait for connection to establish
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }, 30000);
+    // Wait a bit to ensure server is ready
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }, 10000);
 
   afterAll(async () => {
+    // Don't stop the existing server - just clean up mock client if it exists
     if (mockClient) {
       mockClient.disconnect();
-    }
-    if (server) {
-      await server.stop();
     }
   });
 

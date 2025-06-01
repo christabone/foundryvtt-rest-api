@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
 import request from 'supertest';
 import { FoundryRelayServer } from '../../src/server';
 
@@ -16,12 +16,12 @@ describe('REST API with Mock WebSocket Tests', () => {
   beforeEach(() => {
     // Mock the WebSocket handler to simulate connected clients
     const mockWebSocketHandler = {
-      getConnectedClients: jest.fn().mockReturnValue(['mock-client-1']),
-      sendMessageToFoundry: jest.fn().mockResolvedValue({
+      getConnectedClients: jest.fn(() => ['mock-client-1']),
+      sendMessageToFoundry: jest.fn(() => Promise.resolve({
         type: 'response',
         success: true,
         data: { message: 'Mock response' }
-      })
+      }))
     };
 
     // Replace the webSocketHandler in the REST router
@@ -41,8 +41,8 @@ describe('REST API with Mock WebSocket Tests', () => {
       };
 
       const mockWebSocketHandler = {
-        getConnectedClients: jest.fn().mockReturnValue(['mock-client-1']),
-        sendMessageToFoundry: jest.fn().mockResolvedValue(mockSearchResponse)
+        getConnectedClients: jest.fn(() => ['mock-client-1']),
+        sendMessageToFoundry: jest.fn(() => Promise.resolve(mockSearchResponse))
       };
       
       (server as any).webSocketHandler = mockWebSocketHandler;

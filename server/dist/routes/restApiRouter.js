@@ -198,6 +198,23 @@ class RestApiRouter {
                 res.json(result);
             }, res);
         });
+        // Browse files and directories  
+        this.router.get('/browse', (req, res) => {
+            this.handleAsyncRoute(async () => {
+                const { path, source = 'data' } = req.query;
+                if (!path) {
+                    res.status(400).json({ error: 'Path parameter is required' });
+                    return;
+                }
+                const message = {
+                    type: 'browse-files',
+                    path: path,
+                    source: source
+                };
+                const result = await this.webSocketHandler.sendMessageToFoundry(message);
+                res.json(result);
+            }, res);
+        });
         // Get selected entities
         this.router.get('/selected', (_req, res) => {
             this.handleAsyncRoute(async () => {

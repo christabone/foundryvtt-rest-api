@@ -1,8 +1,8 @@
+import { describe, expect, beforeEach, afterEach, test } from '@jest/globals';
 import { SecureApiKeyManager, ApiKey } from '../../src/auth/secureApiKeyManager';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import '@jest/globals';
 
 describe('SecureApiKeyManager', () => {
   let manager: SecureApiKeyManager;
@@ -286,7 +286,7 @@ describe('SecureApiKeyManager', () => {
       await manager.destroy();
       
       // Manager should no longer work after destruction
-      const securityInfo = manager.getSecurityInfo();
+      const securityInfo = manager.getSecurityInfo() as any;
       expect(securityInfo.totalKeys).toBe(0);
     });
   });

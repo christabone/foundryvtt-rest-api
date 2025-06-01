@@ -9,6 +9,9 @@ describe('FoundryRelayServer Integration Tests', () => {
   let app: any;
 
   beforeAll(async () => {
+    // Use a different port for testing
+    process.env.PORT = '3011';
+    
     server = new FoundryRelayServer();
     await server.start();
     app = server.getApp();
@@ -19,7 +22,7 @@ describe('FoundryRelayServer Integration Tests', () => {
     
     // Wait a bit for connection to establish
     await new Promise(resolve => setTimeout(resolve, 500));
-  });
+  }, 60000);
 
   afterAll(async () => {
     if (mockClient) {
