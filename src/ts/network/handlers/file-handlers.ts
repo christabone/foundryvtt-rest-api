@@ -3,47 +3,6 @@ import { ModuleLogger } from "../../utils/logger";
 
 export function registerFileHandlers(socketManager: WebSocketManager) {
     
-    // Browse files and directories using FilePicker
-    socketManager.onMessageType("browse-files", async (data) => {
-        ModuleLogger.info(`Received browse-files request:`, data);
-        
-        try {
-            const { path, source = 'data' } = data;
-            
-            if (!path) {
-                socketManager.send({
-                    type: "browse-files-result",
-                    requestId: data.requestId,
-                    error: "Path parameter is required"
-                });
-                return;
-            }
-
-            // Use FoundryVTT's FilePicker.browse() method
-            const result = await FilePicker.browse(source, path);
-            
-            socketManager.send({
-                type: "browse-files-result", 
-                requestId: data.requestId,
-                path: path,
-                source: source,
-                directories: result.dirs || [],
-                files: result.files || []
-            });
-            
-        } catch (error) {
-            ModuleLogger.error(`Failed to browse files:`, error);
-            socketManager.send({
-                type: "browse-files-result",
-                requestId: data.requestId,
-                error: `Failed to browse path: ${(error as Error).message}`,
-                path: data.path || "",
-                source: data.source || "data",
-                directories: [],
-                files: []
-            });
-        }
-    });
 
     // Handle file system structure request
     socketManager.onMessageType("get-file-system", async (data) => {
