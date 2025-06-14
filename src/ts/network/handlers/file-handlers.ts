@@ -85,9 +85,26 @@ export function registerFileHandlers(socketManager: WebSocketManager) {
                 }
             }
             
-            const results = [...dirs, ...files];
+            let results = [...dirs, ...files];
             if (recursive) {
                 results.push(...subdirs);
+            }
+            
+            // Apply extensions filter
+            if (data.extensions && Array.isArray(data.extensions)) {
+                const extensions = data.extensions.map((ext: string) => ext.toLowerCase());
+                results = results.filter(item => {
+                    if (item.type === 'directory') return true; // Keep directories
+                    return extensions.some((ext: string) => item.name.toLowerCase().endsWith(ext));
+                });
+            }
+            
+            // Apply search filter
+            if (data.search && typeof data.search === 'string') {
+                const searchTerm = data.search.toLowerCase();
+                results = results.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm)
+                );
             }
             
             socketManager.send({
@@ -97,6 +114,7 @@ export function registerFileHandlers(socketManager: WebSocketManager) {
                 path,
                 source,
                 results,
+                total: results.length,
                 recursive
             });
         } catch (error) {

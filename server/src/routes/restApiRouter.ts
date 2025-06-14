@@ -314,6 +314,35 @@ export class RestApiRouter {
       }, res);
     });
 
+    // Browse file system
+    this.router.get('/browse', (req: Request, res: Response) => {
+      this.handleAsyncRoute(async () => {
+        const { path, source, recursive, extensions, search } = req.query;
+
+        // Security: restrict to safe directories (icons and assets)
+        const requestedPath = (path as string) || '';
+        if (requestedPath && !requestedPath.startsWith('icons') && !requestedPath.startsWith('assets')) {
+          res.status(403).json({ 
+            error: 'Access denied', 
+            message: 'Only paths within "icons" and "assets" directories are allowed' 
+          });
+          return;
+        }
+
+        const message = {
+          type: 'get-file-system',
+          path: requestedPath,
+          source: (source as string) || 'data',
+          recursive: (recursive as string) === 'true',
+          extensions: extensions ? (extensions as string).split(',').map(e => e.trim()) : undefined,
+          search: search as string
+        };
+
+        const result = await this.webSocketHandler.sendMessageToFoundry(message);
+        res.json(result);
+      }, res);
+    });
+
     // Connected clients status (no auth required)
     this.router.get('/status', (_req: Request, res: Response) => {
       const clients = this.webSocketHandler.getConnectedClients();
