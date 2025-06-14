@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import * as path from 'path';
 import { WebSocketHandler } from '../websocket/webSocketHandler';
 import { EnhancedApiKeyManager } from '../auth/enhancedApiKeyManager';
 
@@ -319,9 +320,16 @@ export class RestApiRouter {
       this.handleAsyncRoute(async () => {
         const { path, source, recursive, extensions, search } = req.query;
 
-        // Security: restrict to safe directories (icons and assets)
-        const requestedPath = (path as string) || '';
-        if (requestedPath && !requestedPath.startsWith('icons') && !requestedPath.startsWith('assets')) {
+        // Security: restrict to safe directories (icons and assets) with path traversal protection
+        const rawPath = (req.query.path as string) || '';
+        const normalizedPath = path.posix.normalize('/' + rawPath).slice(1); // Remove leading slash
+        
+        const ALLOWED_ROOTS = ['icons', 'assets'];
+        const isPathAllowed = ALLOWED_ROOTS.some(root => 
+          normalizedPath === root || normalizedPath.startsWith(root + '/')
+        );
+        
+        if (rawPath && !isPathAllowed) {
           res.status(403).json({ 
             error: 'Access denied', 
             message: 'Only paths within "icons" and "assets" directories are allowed' 
@@ -329,13 +337,26 @@ export class RestApiRouter {
           return;
         }
 
+        // Validate extensions parameter
+        let validatedExtensions: string[] | undefined;
+        if (extensions) {
+          const extArray = (extensions as string).split(',').map(e => e.trim());
+          // Only allow alphanumeric extensions with dots
+          validatedExtensions = extArray.filter(ext => /^\.?[a-z0-9]+$/i.test(ext));
+        }
+
+        // Validate search parameter (alphanumeric and basic punctuation only)
+        const validatedSearch = search && typeof search === 'string' 
+          ? (search as string).replace(/[^\w\s\-_\.]/g, '') 
+          : undefined;
+
         const message = {
           type: 'get-file-system',
-          path: requestedPath,
+          path: normalizedPath,
           source: (source as string) || 'data',
           recursive: (recursive as string) === 'true',
-          extensions: extensions ? (extensions as string).split(',').map(e => e.trim()) : undefined,
-          search: search as string
+          extensions: validatedExtensions,
+          search: validatedSearch
         };
 
         const result = await this.webSocketHandler.sendMessageToFoundry(message);
