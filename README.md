@@ -89,3 +89,74 @@ Once configured, the module will:
 - **Module not loading**: Check that the module is properly installed and enabled
 - **WebSocket errors**: Verify the relay server URL format (should start with `ws://` for local connections)
 - **API key issues**: Try regenerating the API key or using your world ID as the key
+
+## Development & Deployment
+
+### Building and Publishing Changes
+
+When making changes to the module:
+
+1. **Update Version Numbers**:
+   ```bash
+   # Update both package.json and module.json to the same version
+   # Example: 1.8.9 → 1.8.10
+   ```
+
+2. **Build the Module**:
+   ```bash
+   npm run build
+   ```
+   This compiles TypeScript and builds the module files.
+
+3. **Commit and Push**:
+   ```bash
+   git add .
+   git commit -m "feat: Description of changes
+
+   🤖 Generated with [Claude Code](https://claude.ai/code)
+   
+   Co-Authored-By: Claude <noreply@anthropic.com>"
+   git push origin main
+   ```
+
+4. **Update FoundryVTT Module**:
+   - In FoundryVTT, go to Add-on Modules
+   - Find "Foundry REST API" 
+   - Click "Update" to get the latest version from GitHub
+   - Restart the world to load the new version
+
+### File Browsing API (v1.8.9+)
+
+The module now includes comprehensive file browsing capabilities:
+
+```bash
+# Browse icons directory
+curl "http://localhost:3001/api/browse?path=icons" \
+  -H "x-api-key: your_api_key"
+
+# Browse weapons with extension filtering
+curl "http://localhost:3001/api/browse?path=icons/weapons&extensions=webp,png" \
+  -H "x-api-key: your_api_key"
+
+# Search for sword icons recursively
+curl "http://localhost:3001/api/browse?path=icons&search=sword&recursive=true" \
+  -H "x-api-key: your_api_key"
+```
+
+**Security Features**:
+- Path traversal protection with `path.posix.normalize()`
+- Access restricted to `icons` and `assets` directories only
+- Input validation for extensions and search parameters
+- API key authentication required
+
+### Architecture
+
+```
+FoundryVTT Module (WebSocket Client)
+           ↕
+Local Relay Server (Express + WebSocket)
+           ↕  
+REST API Clients (curl, scripts, etc.)
+```
+
+The module connects to a local relay server that provides REST API endpoints, enabling external applications to interact with FoundryVTT through standard HTTP requests.
